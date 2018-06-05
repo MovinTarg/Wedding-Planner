@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Wedding Board";
+}
+<h1>Welcome to the Wedding Planner</h1>
+@{
+    if(ViewBag.allWeddings.Count > 0)
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Wedding</th>
+                    <th>Date</th>
+                    <th>Guests</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach(var wedding in ViewBag.allWeddings)
+            {
+                <tr>
+                    <td><a href="@wedding.Id">@wedding.WedderOne & @wedding.WedderTwo</a></td>
+                    <td>@wedding.WeddingDate</td>
+                    <td>@wedding.Atendees.Count</td>
+                    @{
+                        if(wedding.PlannerId == ViewBag.ActiveUserId)
+                        {
+                            <td><a href="/wedding/@wedding.Id/delete">RSVP</a></td>
+                        }
+                        else
+                        {
+                            @foreach(var guest in wedding.Atendees)
+                            {
+                                bool attending = false;
+                                @if(guest.AttendeeId == ViewBag.ActiveUserId)
+                                {
+                                    attending = true;
+                                    break;
+                                }
+                                if(attending)
+                                {
+                                    <td><a href="/wedding/@wedding.Id/Unrsvp">UN-RSVP</a></td>
+                                }
+                                else
+                                {
+                                    <td><a href="/wedding/@wedding.Id/rsvp">RSVP</a></td>
+                                }
+                            }
+                        }
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {   
+        <h1>Plan a Wedding!</h1>
+    }
+}
+<a class="btn" href="/new">New Wedding</a>
