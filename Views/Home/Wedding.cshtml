@@ -1,21 +1,19 @@
 @{
     ViewData["Title"] = "Wedding Info";
 }
-<h1>@Viewbag.Wedding.WedderOne and @Viewbag.Wedding.WedderTwo Wedding </h1>
-<h4>Date: @@Viewbag.Wedding.WeddingDate</h4>
+<h1>The Wedding of @ViewBag.Wedding.WedderOne and @ViewBag.Wedding.WedderTwo</h1>
+<h4>Date: @ViewBag.Wedding.WeddingDate</h4>
 <h4>Guests:</h4>
-@{
-    if(ViewBag.Wedding.Attendees.Count > 0)
-    {
-        <ul>
-            @foreach(var guest in ViewBag.Wedding.Attendees)
-            {
-                <li>@guest.User.FirstName @guest.User.LastName</li>
-            }
-        </ul>
-    }
-    else
-    {   
-        <p>No guests have RSVPed for this wedding!</p>
-    }
+@if(ViewBag.Wedding.Attendees.Count > 0)
+{
+    <ul>
+        @foreach(var guest in ViewBag.Wedding.Attendees)
+        {
+            <li>@guest.Attendee.FirstName @guest.Attendee.LastName</li>
+        }
+    </ul>
+}
+else
+{   
+    <p>No guests have RSVPed for this wedding!</p>
 }

@@ -18,32 +18,32 @@
             @foreach(var wedding in ViewBag.allWeddings)
             {
                 <tr>
-                    <td><a href="@wedding.Id">@wedding.WedderOne & @wedding.WedderTwo</a></td>
+                    <td><a href="wedding/@wedding.WeddingId">@wedding.WedderOne & @wedding.WedderTwo</a></td>
                     <td>@wedding.WeddingDate</td>
-                    <td>@wedding.Atendees.Count</td>
+                    <td>@wedding.Attendees.Count</td>
                     @{
-                        if(wedding.PlannerId == ViewBag.ActiveUserId)
+                        if(wedding.UserId == ViewBag.ActiveUserId)
                         {
-                            <td><a href="/wedding/@wedding.Id/delete">RSVP</a></td>
+                            <td><a href="/wedding/@wedding.WeddingId/delete">Cancel</a></td>
                         }
                         else
                         {
-                            @foreach(var guest in wedding.Atendees)
+                            bool attending = false;
+                            @foreach(var guest in wedding.Attendees)
                             {
-                                bool attending = false;
-                                @if(guest.AttendeeId == ViewBag.ActiveUserId)
+                                @if(guest.UserId == ViewBag.ActiveUserId)
                                 {
                                     attending = true;
                                     break;
                                 }
-                                if(attending)
-                                {
-                                    <td><a href="/wedding/@wedding.Id/Unrsvp">UN-RSVP</a></td>
-                                }
-                                else
-                                {
-                                    <td><a href="/wedding/@wedding.Id/rsvp">RSVP</a></td>
-                                }
+                            }
+                            if(attending == true)
+                            {
+                                <td><a href="/wedding/@wedding.WeddingId/Unrsvp">UN-RSVP</a></td>
+                            }
+                            else
+                            {
+                                <td><a href="/wedding/@wedding.WeddingId/rsvp">RSVP</a></td>
                             }
                         }
                     }

@@ -23,7 +23,7 @@ namespace Wedding_Planner
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<WeddingPlannerContext>(options => options.UseNpgsql(Configuration["DBInfo:ConnectionString"]));
+            services.AddDbContext<WeddingPlannerContext>(options => options.UseMySql(Configuration["DBInfo:ConnectionString"]));
             services.AddMvc();
             services.AddSession();
         }

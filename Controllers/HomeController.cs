@@ -29,7 +29,8 @@ namespace Wedding_Planner.Controllers
             int? ActiveUserId = HttpContext.Session.GetInt32("ActiveUserId");
             if(ActiveUserId == null)
                 return RedirectToAction("Index");
-            List<Wedding> AllWeddings = _weddingPlannerContext.weddings
+            List<Wedding> AllWeddings = _weddingPlannerContext.Wedding
+            .OrderBy(q => q.WeddingDate)
             .Include(w => w.Attendees)
             .ThenInclude(g => g.Attendee)
             .ToList();
@@ -40,13 +41,18 @@ namespace Wedding_Planner.Controllers
         [Route("wedding/{WeddingId}")]
         public IActionResult Wedding(int WeddingId)
         {
-          Wedding Wedding = _weddingPlannerContext.weddings
+          Wedding Wedding = _weddingPlannerContext.Wedding
             .Include(w => w.Attendees)
             .ThenInclude(a => a.Attendee)
-            .Where(w => w.Id == WeddingId)
+            .Where(w => w.WeddingId == WeddingId)
             .SingleOrDefault();
           ViewBag.Wedding = Wedding;
-          return View();
+          return View("Wedding");
+        }
+        [Route("/new")]
+        public IActionResult New()
+        {
+            return View("New");
         }
         [HttpPost]
         [Route("/user/register")]
@@ -54,7 +60,7 @@ namespace Wedding_Planner.Controllers
         {
             if (ModelState.IsValid)
             {
-                User EmailCheck = _weddingPlannerContext.users.SingleOrDefault(User => User.Email == model.Email);
+                User EmailCheck = _weddingPlannerContext.User.SingleOrDefault(User => User.Email == model.Email);
                 if (EmailCheck == null)
                 {
                     User newUser = new User
@@ -68,7 +74,7 @@ namespace Wedding_Planner.Controllers
                     };
                     _weddingPlannerContext.Add(newUser);
                     _weddingPlannerContext.SaveChanges();
-                    int ActiveUserId = _weddingPlannerContext.users.Last().Id;
+                    int ActiveUserId = _weddingPlannerContext.User.Last().UserId;
                     HttpContext.Session.SetInt32("ActiveUserId", ActiveUserId);
                     return RedirectToAction("Dashboard");
                 }
@@ -84,12 +90,12 @@ namespace Wedding_Planner.Controllers
         {
             if (ModelState.IsValid)
             {
-                User ActiveUser = _weddingPlannerContext.users.SingleOrDefault(User => User.Email == model.Email);
+                User ActiveUser = _weddingPlannerContext.User.SingleOrDefault(User => User.Email == model.Email);
                 if(ActiveUser != null)
                 {
                     if(model.Password == ActiveUser.Password)
                     {
-                        HttpContext.Session.SetInt32("ActiveUserId", ActiveUser.Id);
+                        HttpContext.Session.SetInt32("ActiveUserId", ActiveUser.UserId);
                         return RedirectToAction("Dashboard");
                     }
                     else
@@ -106,7 +112,7 @@ namespace Wedding_Planner.Controllers
             if (ModelState.IsValid)
             {
                 int? ActiveUserId = HttpContext.Session.GetInt32("ActiveUserId");
-                User User = _weddingPlannerContext.users.Where(u => u.Id == ActiveUserId).SingleOrDefault();
+                User User = _weddingPlannerContext.User.Where(u => u.UserId == ActiveUserId).SingleOrDefault();
                 Wedding newWedding = new Wedding
                 {
                     WedderOne = model.WedderOne,
@@ -128,7 +134,7 @@ namespace Wedding_Planner.Controllers
         {
             Guest newGuest = new Guest
             {
-                AttendeeId = (int)HttpContext.Session.GetInt32("ActiveUserId"),
+                UserId = (int)HttpContext.Session.GetInt32("ActiveUserId"),
                 WeddingId = WeddingId
             };
             _weddingPlannerContext.Add(newGuest);
@@ -138,8 +144,8 @@ namespace Wedding_Planner.Controllers
         [Route("/wedding/{WeddingId}/unrsvp")]
         public IActionResult UnRSVP(int WeddingId)
         {
-            Guest removeGuest =  _weddingPlannerContext.guests
-                .Where(g => g.WeddingId == WeddingId && g.AttendeeId == (int)HttpContext.Session.GetInt32("ActiveUserId"))
+            Guest removeGuest =  _weddingPlannerContext.Guest
+                .Where(g => g.WeddingId == WeddingId && g.UserId == (int)HttpContext.Session.GetInt32("ActiveUserId"))
                 .SingleOrDefault();
             _weddingPlannerContext.Remove(removeGuest);
             _weddingPlannerContext.SaveChanges();
@@ -148,12 +154,17 @@ namespace Wedding_Planner.Controllers
         [Route("/wedding/{WeddingId}/delete")]
         public IActionResult Delete(int WeddingId)
         {
-            Wedding deleteWedding = _weddingPlannerContext.weddings
-                .Where(w => w.Id == WeddingId)
+            Wedding deleteWedding = _weddingPlannerContext.Wedding
+                .Where(w => w.WeddingId == WeddingId)
                 .SingleOrDefault();
-            _weddingPlannerContext.weddings.Remove(deleteWedding);
+            var AttendingGuests = _weddingPlannerContext.Guest.Where(g => g.WeddingId == WeddingId);
+            foreach(var guest in AttendingGuests)
+            {
+                _weddingPlannerContext.Guest.Remove(guest);
+            }
+            _weddingPlannerContext.Wedding.Remove(deleteWedding);
             _weddingPlannerContext.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Dashboard");
         }
     }
 }
